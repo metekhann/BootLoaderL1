@@ -21,9 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdarg.h>
-#include <string.h>
-#include <stdlib.h>
+
 #include "bootloader_command_codes.h"
 #include "bootloader_command_app.h"
 /* USER CODE END Includes */
@@ -111,7 +109,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   HAL_UART_Receive_IT(&huart1, (uint8_t*)&uart_data, 1);
-  bootloader_jump_userApp();
+  //bootloader_jump_userApp();
 
   /* USER CODE END 2 */
 
@@ -312,7 +310,19 @@ void bootloader_uart_data_read(void)
 		switch(bootloader_rx_data[1])
 		{
 			case BL_GET_VER:
+				bootloader_get_ver_cmd(bootloader_rx_data);
 				break;
+
+			case BL_GET_HELP:
+				bootloader_get_help_cmd(bootloader_rx_data);
+				break;
+
+			case BL_GET_CID:
+				bootloader_get_cid_cmd(bootloader_rx_data);
+
+			case BL_GET_RDP_STATUS:
+				bootloader_get_rdpStatus_cmd(bootloader_rx_data);
+
 			default:
 				break;
 		}
