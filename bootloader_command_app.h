@@ -14,7 +14,7 @@
 
 
 extern CRC_HandleTypeDef hcrc;
-extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart2;
 
 
 
@@ -25,7 +25,7 @@ extern UART_HandleTypeDef huart1;
 #define BL_CRC_SUCCES	(0U)
 
 #define BL_NACK_VALUE	(0x7FU)
-#define BL_ACK_VALUE	(0xA5U)
+#define BL_ACK_VALUE	(98U)
 
 
 
@@ -45,5 +45,7 @@ uint8_t bootloader_verify_crc(uint8_t *Buffer, uint32_t len, uint32_t host_crc);
 void bootloader_send_ACK(uint8_t followLenght);
 void bootloader_send_NACK();
 void bootloader_send_to_host(uint8_t* message, uint16_t len);
+
+uint32_t crc32(const uint8_t *s,size_t n);
 
 #endif /* BOOTLOADER_INC_BOOTLOADER_COMMAND_APP_H_ */

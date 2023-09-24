@@ -1,6 +1,14 @@
 /*
  * bootloader_command_app.c
  *
+ *  Created on: Sep 23, 2023
+ *      Author: meteh
+ */
+
+
+/*
+ * bootloader_command_app.c
+ *
  *  Created on: Sep 20, 2023
  *      Author: metehan.cakmak
  */
@@ -96,11 +104,13 @@ uint8_t bootloader_verify_crc(uint8_t *Buffer, uint32_t len, uint32_t host_crc)
 	uint32_t crc_value = 0xFF;
 	uint32_t data = 0;
 
-	for(uint32_t i = 0; i < len; i++)
+	/*for(uint32_t i = 0; i < len; i++)
 	{
 		data = Buffer[i];
 		crc_value = HAL_CRC_Accumulate(&hcrc, &data, 1);
-	}
+	}*/
+
+	crc_value = crc32(Buffer, len);
 
 	__HAL_CRC_DR_RESET(&hcrc);
 
@@ -129,8 +139,23 @@ void bootloader_send_NACK()
 
 void bootloader_send_to_host(uint8_t* message, uint16_t len)
 {
-	HAL_UART_Transmit(&huart1, message, len, HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, message, len, HAL_MAX_DELAY);
 }
 
+uint32_t crc32(const uint8_t *s,size_t n)
+{
+	uint32_t crc=0xFFFFFFFF;
 
+	for(size_t i=0;i<n;i++) {
+		uint8_t ch=s[i];
+		for(size_t j=0;j<8;j++) {
+			uint32_t b=(ch^crc)&1;
+			crc>>=1;
+			if(b) crc=crc^0xEDB88320;
+			ch>>=1;
+		}
+	}
+
+	return ~crc;
+}
 
