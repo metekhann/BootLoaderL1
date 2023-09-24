@@ -146,6 +146,7 @@ void send_get_ver(HANDLE* port, char* portname)
 
     calculated_crc = crc32(send_ver_packet, 2);
 
+
     if(WriteFile(*port, send_ver_packet , sizeof(send_ver_packet), &bytesWritten, NULL))
     {
         printf("lenght yollandi..\n");
@@ -155,6 +156,7 @@ void send_get_ver(HANDLE* port, char* portname)
         printf("hata: lenght gonderilemedi..");
     }
 
+    for(int i = 0; i < 100000; i++);
     if(WriteFile(*port, &calculated_crc , sizeof(calculated_crc), &bytesWritten, NULL))
     {
         printf("crc yollandi..\n");
@@ -168,12 +170,13 @@ void listen_ack(HANDLE* port, char* portname)
 {
     int gecikme = 1;
     DWORD bytesRead = 0;
-    uint8_t size = 2;
-    uint8_t temp_buffer[2] = {0};
+    uint8_t size = 4;
+    uint8_t temp_buffer[4] = {0};
+    uint8_t buffer[100] = {0};
  
     while((size > 0) && (gecikme < 40))
     {
-        if (ReadFile(*port, temp_buffer, 2, &bytesRead, NULL)) 
+        if (ReadFile(*port, temp_buffer, 4, &bytesRead, NULL)) 
         {
             printf("%lu\n",bytesRead);
             if (bytesRead > 0) 
@@ -181,6 +184,9 @@ void listen_ack(HANDLE* port, char* portname)
                 //memcpy(buffer, temp_buffer, bytesRead);
                 //buffer = buffer + bytesRead; 
                 size = size - bytesRead;
+                printf("CRC: %u\n", bytesRead);
+                printf("CRC: %u\n", temp_buffer[0]);
+                printf("CRC: %u\n", temp_buffer[1]);
             }
         } 
         else 
@@ -191,9 +197,11 @@ void listen_ack(HANDLE* port, char* portname)
         if(bytesRead == 0)
             gecikme++;
     }
-    if(temp_buffer[0] == 0xA5U)
+    if(temp_buffer[0] == 98U)
     {
-        printf("VERSION\n: %u", temp_buffer[1]);
+        printf("VERSION\n: %u", temp_buffer[2]);
+        printf("VERSION\n: %u", temp_buffer[3]);
+
 
     }
     else
@@ -244,7 +252,7 @@ int init_com_port(HANDLE* port, char* portname)
         CloseHandle(*port);
         return 0;
     }
-    dcbSerialParams.BaudRate = CBR_115200;  // İletim hızını belirle (örneğin 9600)
+    dcbSerialParams.BaudRate = CBR_9600;  // İletim hızını belirle (örneğin 9600)
     dcbSerialParams.ByteSize = 8;         // Veri boyutunu belirle (8 bit)
     dcbSerialParams.Parity = NOPARITY;    // Pariteyi belirle (parite yok)
     dcbSerialParams.StopBits = ONESTOPBIT;// Durma bitlerini belirle (1 bit)
@@ -258,8 +266,8 @@ int init_com_port(HANDLE* port, char* portname)
 /////// Timeouts ayarlarini yapma (bloklayici olmaktan cikarma)
     COMMTIMEOUTS timeouts = {0};
     timeouts.ReadIntervalTimeout = MAXDWORD;
-    timeouts.ReadTotalTimeoutMultiplier = 200;
-    timeouts.ReadTotalTimeoutConstant = 800;
+    timeouts.ReadTotalTimeoutMultiplier = 0;
+    timeouts.ReadTotalTimeoutConstant = 0;
     timeouts.WriteTotalTimeoutMultiplier = 0;
     timeouts.WriteTotalTimeoutConstant = 0;
     SetCommTimeouts(*port, &timeouts);
@@ -366,7 +374,7 @@ int listen_data(HANDLE* port, char* buffer, long int file_size)
 int listen_crc(HANDLE* port, uint32_t* crc)
 {
     DWORD bytesRead = 0;
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 1000; i++)
     {
         if(ReadFile(*port, &(*crc), sizeof(uint32_t), &bytesRead, NULL))
         {
